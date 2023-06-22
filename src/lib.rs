@@ -109,7 +109,7 @@ impl ParticleSwarm {
             // Update velocity and position
             let cognitive_update = (p_best_x - particle) * self.cognitive_factor * rand::random::<f64>();
             let social_update = (&self.global_best_x - particle) * self.social_factor * rand::random::<f64>();
-            let updated_velocity = velocity.clone() + cognitive_update + social_update;
+            let updated_velocity = velocity + cognitive_update + social_update;
             let updated_particle = particle + &updated_velocity;
 
             self.particles[i] = updated_particle.clone();

@@ -120,6 +120,14 @@ impl Add<&Particle> for Particle {
     }
 }
 
+impl Add<Particle> for &Particle {
+    type Output = Particle;
+
+    fn add(self, other: Particle) -> Particle {
+        self.combine_pointwise(&other, |(a, b)| a + b)
+    }
+}
+
 impl Add for &Particle {
     type Output = Particle;
 
