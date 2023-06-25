@@ -3,12 +3,14 @@ pub mod particle;
 use rand::prelude::*;
 use std::cmp::*;
 
+use serde::Serialize;
+
 use crate::particle::*;
 
 
 type Velocity = Particle;
 
-#[derive(Debug)]
+#[derive(Debug,Serialize)]
 pub struct SolverResult {
     solution: (Particle, f64),
     swarm_size: usize,
@@ -20,7 +22,7 @@ pub struct SolverResult {
     history: Vec<SolverState>
 }
 
-#[derive(Debug)]
+#[derive(Debug,Serialize)]
 pub struct SolverState {
     particles: Vec<Particle>,
     velocities: Vec<Velocity>,
@@ -110,7 +112,9 @@ impl ParticleSwarm {
             let cognitive_update = (p_best_x - particle) * self.cognitive_factor * rand::random::<f64>();
             let social_update = (&self.global_best_x - particle) * self.social_factor * rand::random::<f64>();
             let updated_velocity = velocity + cognitive_update + social_update;
+
             let updated_particle = particle + &updated_velocity;
+            let updated_particle = updated_particle.restrict(&self.lower_bound, &self.upper_bound);
 
             self.particles[i] = updated_particle.clone();
             self.velocities[i] = updated_velocity;
@@ -122,6 +126,7 @@ impl ParticleSwarm {
                 self.particle_bests[i] = (updated_particle.clone(), objective_value);
             }
             if objective_value < self.global_best_value {
+                println!("UPDATING GLOBAL BEST");
                 self.global_best_x = updated_particle;
                 self.global_best_value = objective_value;
             }
@@ -154,7 +159,6 @@ impl ParticleSwarm {
             max_iterations: self.max_iterations,
             history: history
         }
-        
     }
 }
 

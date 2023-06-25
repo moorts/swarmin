@@ -2,7 +2,9 @@ use std::ops::*;
 use std::assert;
 use std::cmp::*;
 
-#[derive(Debug, Clone)]
+use serde::Serialize;
+
+#[derive(Debug, Clone,Serialize)]
 pub struct Particle {
     position: Vec<f64>,
     dim: usize
@@ -43,6 +45,15 @@ impl Particle {
             self.position[i] = op((self.position[i], other.position[i]));
         }
     }
+
+    pub fn restrict(&self, min: &Self, max: &Self) -> Self {
+        let mut position = Vec::with_capacity(self.dim);
+        for i in 0..self.dim {
+            position.push(self[i].clamp(min[i], max[i]));
+        }
+        Self::new(position)
+    }
+
 }
 
 impl Index<usize> for Particle {
@@ -175,6 +186,14 @@ impl Ord for Particle {
             result = result.then(self[i].total_cmp(&other[i]));
         }
         result
+    }
+
+    fn clamp(self, min: Self, max: Self) -> Self {
+        let mut position = Vec::with_capacity(self.dim);
+        for i in 0..self.dim {
+            position.push(self[i].clamp(min[i], max[i]));
+        }
+        Self::new(position)
     }
 }
 

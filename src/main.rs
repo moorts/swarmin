@@ -2,12 +2,20 @@
 use swarmin::*;
 use swarmin::particle::*;
 
-fn main() {
+use std::fs::File;
 
-    let lower_bound = Particle::new(vec![-5.,-5.]);
-    let upper_bound = Particle::new(vec![5.,5.]);
+fn main() -> std::io::Result<()> {
 
-    let mut swarm = ParticleSwarm::new(2, rosenbrock, 100, 2.0, 2.0, lower_bound, upper_bound, 10, false);
+    let lower_bound = Particle::new(vec![-20.,-20.]);
+    let upper_bound = Particle::new(vec![20.,20.]);
 
-    println!("{:?}", swarm.solve());
+    let mut swarm = ParticleSwarm::new(2, rosenbrock, 100, 2.0, 2.0, lower_bound, upper_bound, 50, true);
+
+    let result = swarm.solve();
+
+    let mut buffer = File::create("pso_result.json")?;
+
+    serde_json::to_writer(buffer, &result);
+
+    Ok(())
 }
