@@ -2,6 +2,7 @@ import json
 
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
+import matplotlib.animation as animation
 import numpy as np
 
 from objective_functions import *
@@ -30,6 +31,8 @@ def parse_history(history):
 def parse_2d_result(result):
     out = {}
 
+    out["swarm_size"] = result["swarm_size"]
+
     # History
     out["history"] = parse_history(result["history"])
 
@@ -42,7 +45,10 @@ def parse_2d_result(result):
     return out
 
 
-def plot_2d_history(f, history, xlims, ylims):
+def plot_2d_history(f, result):
+    history = result["history"]
+    xlims = result["xlims"]
+    ylims = result["ylims"]
     fig, ax = plt.subplots()
 
     x_disc = np.linspace(xlims[0], xlims[1], num = 351)
@@ -61,10 +67,24 @@ def plot_2d_history(f, history, xlims, ylims):
 
     plt.contourf(X,Y,Z.T, cmap='gray_r', levels = contour_vals)
 
-    print(values)
     xs, ys = zip(*values)
 
-    plt.plot(xs, ys)
+    def update(frame, points, history):
+        particles = history[frame]["particles"]
+        global_best_x = history[frame]["global_best_x"]
+        for point, particle in zip(points, particles):
+            point.set_data([particle[0]], [particle[1]])
+            if particle == global_best_x:
+                point.set_color("blue")
+            else:
+                point.set_color("red")
+        return points
+
+    points = [ax.plot([], [], 'ro')[0] for _ in range(result["swarm_size"])]
+
+    ani = animation.FuncAnimation(fig, update, len(history), fargs=(points, history), interval=300)
+
+    #plt.plot(xs, ys)
 
     plt.gca().set_aspect('equal', 'box')
     plt.title("PSO: Global Best Values")
@@ -72,11 +92,11 @@ def plot_2d_history(f, history, xlims, ylims):
     ax.set_xlim(xlims)
     ax.set_ylim(ylims)
 
+    plt.show()
     return fig
 
 with open('../pso_result.json') as f:
     result = parse_2d_result(json.load(f))
     objective = lambda x: rosenbrock(x, [True, False, False])["function"]
-    plot_2d_history(objective, result["history"], result["xlims"], result["ylims"])
+    plot_2d_history(objective, result)
 
-    plt.show()

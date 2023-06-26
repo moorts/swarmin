@@ -12,7 +12,7 @@ type Velocity = Particle;
 
 #[derive(Debug,Serialize)]
 pub struct SolverResult {
-    solution: (Particle, f64),
+    pub solution: (Particle, f64),
     swarm_size: usize,
     cognitive_factor: f64,
     social_factor: f64,
@@ -45,6 +45,10 @@ pub struct ParticleSwarm {
 
     cognitive_factor: f64,
     social_factor: f64,
+    inertia: f64,
+
+    v_min: Velocity,
+    v_max: Velocity,
 
     lower_bound: Particle,
     upper_bound: Particle,
@@ -55,7 +59,7 @@ pub struct ParticleSwarm {
 
 impl ParticleSwarm {
 
-    pub fn new(dim: usize, objective: fn(&Particle, usize) -> f64, swarm_size: usize, cognitive_factor: f64, social_factor: f64, lower_bound: Particle, upper_bound: Particle, max_iterations: usize, keep_history: bool) -> Self {
+    pub fn new(dim: usize, objective: fn(&Particle, usize) -> f64, swarm_size: usize, cognitive_factor: f64, social_factor: f64, inertia: f64, v_min: f64, v_max: f64, lower_bound: Particle, upper_bound: Particle, max_iterations: usize, keep_history: bool) -> Self {
         // Initialize Particles and Velocitie
         let mut particles = Vec::with_capacity(swarm_size);
         let mut velocities = vec![Particle::zeros(dim); swarm_size];
@@ -93,6 +97,9 @@ impl ParticleSwarm {
             global_best_value: global_best_value,
             cognitive_factor: cognitive_factor,
             social_factor: social_factor,
+            inertia: inertia,
+            v_min: Velocity::new(vec![v_min; dim]),
+            v_max: Velocity::new(vec![v_max; dim]),
             lower_bound: lower_bound,
             upper_bound: upper_bound,
             max_iterations: max_iterations,
@@ -102,6 +109,9 @@ impl ParticleSwarm {
     }
 
     fn step(&mut self) {
+        let mut new_global_best_x = Particle::zeros(self.dim);
+        let mut new_global_best_value = f64::INFINITY;
+
         for i in 0..self.swarm_size {
             let particle = &self.particles[i];
             let velocity = &self.velocities[i];
@@ -111,7 +121,7 @@ impl ParticleSwarm {
             // Update velocity and position
             let cognitive_update = (p_best_x - particle) * self.cognitive_factor * rand::random::<f64>();
             let social_update = (&self.global_best_x - particle) * self.social_factor * rand::random::<f64>();
-            let updated_velocity = velocity + cognitive_update + social_update;
+            let updated_velocity = (velocity * self.inertia + cognitive_update + social_update).restrict(&self.v_min, &self.v_max);
 
             let updated_particle = particle + &updated_velocity;
             let updated_particle = updated_particle.restrict(&self.lower_bound, &self.upper_bound);
@@ -125,12 +135,13 @@ impl ParticleSwarm {
             if objective_value < *p_best_value {
                 self.particle_bests[i] = (updated_particle.clone(), objective_value);
             }
-            if objective_value < self.global_best_value {
-                println!("UPDATING GLOBAL BEST");
-                self.global_best_x = updated_particle;
-                self.global_best_value = objective_value;
+            if objective_value < new_global_best_value {
+                new_global_best_x = updated_particle;
+                new_global_best_value = objective_value;
             }
         }
+        self.global_best_x = new_global_best_x;
+        self.global_best_value = new_global_best_value;
     }
 
     pub fn solve(&mut self) -> SolverResult {
