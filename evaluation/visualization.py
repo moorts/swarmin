@@ -82,7 +82,7 @@ def plot_2d_history(f, result):
 
     points = [ax.plot([], [], 'ro')[0] for _ in range(result["swarm_size"])]
 
-    ani = animation.FuncAnimation(fig, update, len(history), fargs=(points, history), interval=300)
+    ani = animation.FuncAnimation(fig, update, len(history), fargs=(points, history), interval=800)
 
     #plt.plot(xs, ys)
 

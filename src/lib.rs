@@ -109,8 +109,8 @@ impl ParticleSwarm {
     }
 
     fn step(&mut self) {
-        let mut new_global_best_x = Particle::zeros(self.dim);
-        let mut new_global_best_value = f64::INFINITY;
+        //let mut new_global_best_x = Particle::zeros(self.dim);
+        //let mut new_global_best_value = f64::INFINITY;
 
         for i in 0..self.swarm_size {
             let particle = &self.particles[i];
@@ -135,13 +135,13 @@ impl ParticleSwarm {
             if objective_value < *p_best_value {
                 self.particle_bests[i] = (updated_particle.clone(), objective_value);
             }
-            if objective_value < new_global_best_value {
-                new_global_best_x = updated_particle;
-                new_global_best_value = objective_value;
+            if objective_value < self.global_best_value {
+                self.global_best_x = updated_particle;
+                self.global_best_value = objective_value;
             }
         }
-        self.global_best_x = new_global_best_x;
-        self.global_best_value = new_global_best_value;
+        //self.global_best_x = new_global_best_x;
+        //self.global_best_value = new_global_best_value;
     }
 
     pub fn solve(&mut self) -> SolverResult {
