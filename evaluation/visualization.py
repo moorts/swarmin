@@ -10,12 +10,12 @@ from objective_functions import *
 
 def parse_history(history):
     out = []
-    iterates = [list(map(lambda x: x["position"], iterate["particles"])) for iterate in history]
+    iterates = [list(map(lambda x: x["data"], iterate["particles"])) for iterate in history]
     for iterate in history:
-        particles = list(map(lambda x: x["position"], iterate["particles"]))
-        velocities = list(map(lambda x: x["position"], iterate["velocities"]))
-        particle_bests = list(map(lambda x: x[0]["position"], iterate["particle_bests"]))
-        global_best_x = iterate["global_best_x"]["position"]
+        particles = list(map(lambda x: x["data"], iterate["particles"]))
+        velocities = list(map(lambda x: x["data"], iterate["velocities"]))
+        particle_bests = list(map(lambda x: x[0]["data"], iterate["particle_bests"]))
+        global_best_x = iterate["global_best_x"]["data"]
         global_best_value = iterate["global_best_value"]
 
         out.append({
@@ -37,8 +37,8 @@ def parse_2d_result(result):
     out["history"] = parse_history(result["history"])
 
     # Parameters
-    xlims = (result["lower_bound"]["position"][0], result["upper_bound"]["position"][0])
-    ylims = (result["lower_bound"]["position"][1], result["upper_bound"]["position"][1])
+    xlims = (result["lower_bound"], result["upper_bound"])
+    ylims = (result["lower_bound"], result["upper_bound"])
     out["xlims"] = xlims
     out["ylims"] = ylims
 
